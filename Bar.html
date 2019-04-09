@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+     .bar.positive {
+        fill: steelblue;
+    }
+
+    .bar.negative {
+        fill: coral;
+    }
+</style> 
+
+<body>
+
+
+    <script src="http://d3js.org/d3.v4.min.js"></script>
+    <script>
+        var data=[
+            {MONTH:'Apr-2018',AMOUNT:6030000},
+            {MONTH:'May-2018',AMOUNT:2055200},
+            {MONTH:'Jun-2018',AMOUNT:-4130000},
+            {MONTH:'Jul-2018',AMOUNT:1030000},
+            {MONTH:'Aug-2018',AMOUNT:3350600},
+            {MONTH:'Sep-2018',AMOUNT:6830700},
+            {MONTH:'Oct-2018',AMOUNT:-3030000},
+            {MONTH:'Nov-2018',AMOUNT:-30000},
+            {MONTH:'Dec-2018',AMOUNT:2026000},
+            {MONTH:'Jan-2018',AMOUNT:1320000},
+            {MONTH:'Feb-2018',AMOUNT:2530000},
+            {MONTH:'Mar-2018',AMOUNT:6430000},
+        ]
+        var margin = {
+                top: 10,
+                right: 30,
+                bottom: 20,
+                left: 70
+            },
+            width = 960,
+            height = 400;
+
+        var svg = d3.select("body").append("svg")
+            .attr('viewBox', '0 0 ' + ((width + margin.left + margin.right)).toString() + ' ' + ((height + margin.top +margin.bottom)).toString()) 
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+        var y = d3.scaleLinear()
+            .range([height, 0]);
+
+        var x = d3.scaleBand()
+            .rangeRound([0, width]);
+
+        var xAxisScale = d3.scaleBand()
+            .rangeRound([0, width]);
+
+
+        xAxisScale.domain(data.map(function (d) {
+            return d.MONTH;
+        }));
+
+        x.domain(data.map(function (d) {
+            return d.MONTH;
+        }));
+        y.domain([
+            d3.min(data.map(function (d) {
+                return d.AMOUNT;
+            })) < 0 ? d3.min(data.map(function (d) {
+                return d.AMOUNT
+            })) : 0,
+            d3.max(data.map(function (d) {
+                return d.AMOUNT;
+            })) < 0 ? 0 : d3.max(data.map(function (d) {
+                return d.AMOUNT
+            }))
+        ]);
+
+        svg.selectAll(".bar")
+            .data(data)
+            .enter().append("rect")
+            .attr("class", function (d) {
+                if (d.AMOUNT < 0) {
+                    return "bar negative";
+                } else {
+                    return "bar positive";
+                }
+
+            })
+            .attr("data-yr", function (d) {
+                return d.MONTH;
+            })
+            .attr("data-c", function (d) {
+                return d.AMOUNT;
+            })
+            .attr("title", function (d) {
+                return (d.MONTH + ": " + d.AMOUNT);
+            })
+            .attr("y", function (d) {
+
+                if (d.AMOUNT > 0) {
+                    return y(d.AMOUNT);
+                } else {
+                    return y(0);
+                }
+
+            })
+            .attr("x", function (d) {
+                return x(d.MONTH);
+            })
+            .attr("width", x.bandwidth() - 0.5)
+            .attr("height", function (d) {
+                return Math.abs(y(d.AMOUNT) - y(0));
+            })
+            .on("mouseover", function (d, i) {
+                svg.append("text")
+                    .attr('class', 'val') // add class to text label
+                    .attr("transform", function (d) {
+                        var mouseCoords = d3.mouse(this.parentNode);
+                        var x = mouseCoords[0] + 4 + 2;
+                        var y = mouseCoords[1] - (2 * 4) - 2;
+                        return "translate(" + x + "," + y + ")";
+                    })
+                    .text(function () {
+                        return ['₹' + Math.round(Math.abs(d.AMOUNT))]; // Value of the text
+                    })
+                    .transition()
+                    .duration(20)
+                    .style("opacity", function () {
+                        return 1;
+                    })
+                    .attr("font-size", "15px");
+            })
+            .on("mouseout", function (d, i) {
+                d3.selectAll('.val').remove();
+            })
+            .on("mousemove", function (d, i) {
+                d3.selectAll('.val').remove();
+                svg.append("text")
+                    .attr('class', 'val') // add class to text label
+                    .attr("transform", function (d) {
+                        var mouseCoords = d3.mouse(this.parentNode);
+                        var x = mouseCoords[0] + 4 + 2;
+                        var y = mouseCoords[1] - (2 * 4) - 2;
+                        return "translate(" + x + "," + y + ")";
+                    })
+                    .text(function () {
+                        return ['₹' + Math.round(Math.abs(d.AMOUNT))]; // Value of the text
+                    })
+                    .transition()
+                    .duration(20)
+                    .style("opacity", function () {
+                        return 1;
+                    })
+                    .attr("font-size", "15px");
+            });
+
+
+
+
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(d3.axisLeft(y).ticks(5).tickFormat(function (d) {
+                var array = ["K", "L", "Cr", "A"];
+                d = Math.abs(d);
+                if (d > 1000) {
+                    d = d / 1000;
+                    var i = 0;
+                    while (d >= 100) {
+                        i++;
+                        d = d / 100;
+                    }
+
+                    d = d + ' ' + array[i];
+                }
+                return d;
+            }));
+
+        svg.append("g")
+            .attr("class", "y axis")
+            .append("text")
+            .text("Amount")
+            .style("font-size", "15px")
+            .attr("transform", "translate(15, 40), rotate(-90)");
+
+        svg.append("g")
+            .attr("class", "X axis")
+            .attr("transform", "translate(" + 0 + "," + height + ")")
+            .call(d3.axisBottom(xAxisScale)); //.ticks(10));
+
+        svg.append("g")
+            .attr("class", "x axis")
+            .append("line")
+            .attr("y1", y(0))
+            .attr("y2", y(0))
+            .attr("x2", width);
+    </script>
+</body>
