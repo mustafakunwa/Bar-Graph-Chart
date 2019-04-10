@@ -11,8 +11,8 @@
 </style> 
 
 <body>
-
-
+     <div style="width:50%">
+     </div>
     <script src="http://d3js.org/d3.v4.min.js"></script>
     <script>
         var data=[
@@ -38,7 +38,7 @@
             width = 960,
             height = 400;
 
-        var svg = d3.select("body").append("svg")
+        var svg = d3.select("div").append("svg")
             .attr('viewBox', '0 0 ' + ((width + margin.left + margin.right)).toString() + ' ' + ((height + margin.top +margin.bottom)).toString()) 
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
